@@ -1,0 +1,36 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - "v*" # Triggers when a tag like v1.0.0 is pushed
+
+jobs:
+  build-apk:
+    name: Build and Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x' # Adjust based on your Flutter version
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          tag_name: ${{ github.ref_name }} # Uses the tag name (e.g., v1.0.0)
+          release_name: "Release ${{ github.ref_name }}"
+          body: "This is an automated release for version ${{ github.ref_name }}."
+          draft: false
+          prerelease: false
