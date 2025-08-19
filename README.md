@@ -49,6 +49,8 @@ git checkout 3.27.1
 
 Run the Commands and dont forget to initiate your emulator or your phone depends what will you're gonna use 
 
+Test
+
 ```bash
 git clone "https://github.com/Arthritisboy/3Y2AAPWD.git"
 cd frontend
