@@ -31,16 +31,24 @@ jobs:
 
       - name: Run AI Review with HuggingFace
         run: |
-          pip install requests
+          pip install requests jq
           DIFF=$(cat changes.diff | head -c 4000)  # trim to 4000 chars
+
           RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer ${{ secrets.HF_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "{\"inputs\":\"You are a code reviewer. Review this code diff for bugs, readability, and improvements. Be concise and helpful:\\n$DIFF\"}" \
             https://api-inference.huggingface.co/models/bigcode/starcoder2-3b)
 
-          # Extract text or fallback
-          echo "$RESPONSE" | jq -r '.[0].generated_text // "AI review failed or returned empty response."' > review.txt
+          echo "Raw response: $RESPONSE"
+
+          # Extract AI output safely: handle generated_text OR error OR fallback
+          echo "$RESPONSE" | jq -r '
+            if type=="array" and .[0].generated_text then .[0].generated_text
+            elif .error then "⚠️ Hugging Face Error: " + .error
+            else "AI review failed or returned empty response."
+            end
+          ' > review.txt
 
       - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
